@@ -1,0 +1,3 @@
+from dataset_classes.sunrgbd import SUNRGBD_Dataset
+from dataset_classes.nyu_v2 import NYU_Depth_Dataset
+from dataset_classes.diode import DIODE_Dataset
