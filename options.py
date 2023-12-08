@@ -50,6 +50,8 @@ class Options():
             args.dataset = 'SUN-RGBD'
         elif args.dataset_name.lower() == 'nyuv2':
             args.dataset = 'NYUv2'
+        elif args.dataset_name.lower() == 'diode':
+            args.dataset = 'DIODE'
         else:
             raise ValueError("wrong dataset name!")
         

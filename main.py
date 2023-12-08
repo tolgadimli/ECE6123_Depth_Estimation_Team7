@@ -16,11 +16,9 @@ from options import Options
 from losses import berHuLoss, MaskedL1Loss, OrdinalLoss, SILogLoss
 from metrics import calc_metrics
 from utils import get_model, SID
-
+from dataset_classes import SUNRGBD_Dataset, NYU_Depth_Dataset, DIODE_Dataset
 import sys
 sys.path.append('..')
-from dataset_classes import SUNRGBD_Dataset, NYU_Depth_Dataset
-
 
 def train(model, device, train_loader, optimizer, scheduler, criterion):
 
@@ -124,7 +122,7 @@ def train_adabins(model, device, train_loader, optimizer, scheduler, criterion):
         pred = pred.squeeze()
 
         loss = criterion(pred, target)
-        print(loss.item())
+        # print(loss.item())
         loss.backward()
         optimizer.step()
 
@@ -148,7 +146,7 @@ def test_adabins(model, device, test_loader, criterion):
             bin_edges, pred = model(data)
             pred = pred.squeeze()
 
-            print(target.shape, pred.shape)
+            # print(target.shape, pred.shape)
 
             metric_ls = calc_metrics(pred, target)
             test_loss += criterion(pred, target).item()  # sum up batch loss
@@ -182,15 +180,16 @@ if __name__ == '__main__':
     print(model_name, decoder, loss_fnc)
 
     MAIN_EXPERIMENT_DIR = 'All_Results'
-    if MAIN_EXPERIMENT_DIR not in os.listdir():
+    if MAIN_EXPERIMENT_DIR not in os.listdir('..'):
         os.mkdir(MAIN_EXPERIMENT_DIR)
 
     date_time = ':'.join(str(datetime.datetime.now()).split(':')[0:2])
     date_time = date_time.replace(' ', '_')
     expr_config = '%s_%s_%s_%s_%s'%(dataset_name, model_name, decoder, loss_fnc, date_time)
-    expr_dir = os.path.join(MAIN_EXPERIMENT_DIR, expr_config)
+    expr_dir = os.path.join('..', MAIN_EXPERIMENT_DIR, expr_config)
+    print(expr_dir)
 
-    if expr_config not in os.listdir(MAIN_EXPERIMENT_DIR):
+    if expr_config not in os.listdir(os.path.join('..', MAIN_EXPERIMENT_DIR)):
         os.mkdir(expr_dir)
 
     # Determining the input image resizes depending on the backbone model
@@ -239,14 +238,20 @@ if __name__ == '__main__':
     if dataset_name == 'SUN-RGBD':
         epoch = 100
         lr_drops = [60,80]
-        train_dataset = SUNRGBD_Dataset('../dataset_classes/SUN-RGBD', mode = 'train', demo = False, portion = 'train', img_resize=img_resize, depth_resize=depth_resize)
-        test_dataset = SUNRGBD_Dataset('../dataset_classes/SUN-RGBD', mode = 'eval', demo = False, portion = 'eval', img_resize=img_resize, depth_resize=depth_resize)
+        train_dataset = SUNRGBD_Dataset('../datasets/SUN-RGBD', mode = 'train', demo = False, portion = 'train', img_resize=img_resize, depth_resize=depth_resize)
+        test_dataset = SUNRGBD_Dataset('../datasets/SUN-RGBD', mode = 'eval', demo = False, portion = 'eval', img_resize=img_resize, depth_resize=depth_resize)
 
     elif dataset_name == 'NYUv2':
         epoch = 25
         lr_drops = [15,20]
         train_dataset = NYU_Depth_Dataset(mode = 'train', demo = False, portion = 'train', img_resize=img_resize, depth_resize=depth_resize)
         test_dataset = NYU_Depth_Dataset(mode = 'eval', demo = False, portion = 'eval', img_resize=img_resize, depth_resize=depth_resize)
+
+    elif dataset_name == 'DIODE':
+        epoch = 25
+        lr_drops = [15,20]
+        train_dataset = DIODE_Dataset(data_dir = '../datasets/DIODE', mode = 'train', demo = False, portion = 'train',img_resize=img_resize, depth_resize=depth_resize )
+        test_dataset = DIODE_Dataset(data_dir = '../datasets/DIODE', mode = 'eval', demo = False, portion = 'val', img_resize=img_resize, depth_resize=depth_resize )
 
 
     # optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.wd)

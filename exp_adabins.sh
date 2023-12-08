@@ -11,4 +11,4 @@
 # Loss Function names:
 # MSE, berhu
 
-python main.py --model_name 'adabins' --dataset_name 'SUN-RGBD' --loss_fnc 'silog' --lr 3e-4 --wd 1e-2 --bs 4 --device 'cuda:0' 
+python main.py --model_name 'adabins' --dataset_name 'SUN-RGBD' --loss_fnc 'silog' --lr 3e-4 --wd 1e-2 --bs 4 --device 'cuda:2' 
