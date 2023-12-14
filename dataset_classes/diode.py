@@ -10,8 +10,9 @@ from copy import deepcopy
 from tqdm import tqdm
 import albumentations as A
 
-MAX_DEPTH = 304.3991
-RANDOM_DEPTH_COEFF = 2.5
+#MAX_DEPTH = 304.3991
+MAX_DEPTH = 305
+RANDOM_DEPTH_COEFF = 10
 
 def get_data_portion(data_dir, portion, t):
     current_dir = os.path.join(data_dir, portion, t)
@@ -61,7 +62,7 @@ class DIODE_Dataset(data.Dataset):
             self.common_transforms = A.Compose([
                 A.Rotate(5),
                 A.HorizontalFlip(p=0.5),
-                A.RandomBrightnessContrast(p=0.3),
+                # A.RandomBrightnessContrast(p=0.3),
                 A.Resize(height=int(img_resize[0]*1.2), width=int(img_resize[1]*1.2)),
                 A.RandomCrop(height=img_resize[0], width=img_resize[1]),
             ])
@@ -132,8 +133,18 @@ def get_mean_and_std_diode(dataset):
     return (mean_r, mean_g, mean_b), (std_r, std_g, std_b)
 
 
-# train_dataset = DIODE_Dataset(data_dir = 'DIODE', mode = 'eval', demo = False, portion = 'train', img_resize = (300,400), depth_resize = (150,200),
-#                              )
+# train_dataset = DIODE_Dataset(data_dir = '../../datasets/DIODE', mode = 'train', demo = False, portion = 'train', img_resize = (300,400), depth_resize = (150,200))
+# m = len(train_dataset)
+# max_depth = 0
+# for i in range(m):
+#     _,d = train_dataset[i]
+#     temp_max = torch.max(d)
+#     if temp_max > max_depth:
+#         max_depth = temp_max
+#         print(max_depth)
+# print('===============')
+# print(max_depth)
+
 
 # # mean_vector, std_vector = get_mean_and_std_diode(train_dataset)
 # # (0.41705924, 0.3793961, 0.36385778), (0.21542302, 0.21402489, 0.22897081)

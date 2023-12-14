@@ -24,7 +24,7 @@ def get_model(model_name, decoder, device):
     elif model_name.lower() == 'dorn':
         model = DORN()
     elif model_name.lower() == 'adabins':
-        model = UnetAdaptiveBins.build(100)
+        model = UnetAdaptiveBins.build(n_bins=256)
     else:
         raise ValueError('Invalid model type.')
     

@@ -122,7 +122,7 @@ def get_mean_and_std_sunrgbd(dataset):
 
 if __name__ == '__main__':
     
-    dataset = SUNRGBD_Dataset(mode = 'eval', demo = False, portion = 'train', img_resize = (228, 304), depth_resize = (128, 160))
+    dataset = SUNRGBD_Dataset(data_dir = '../../datasets/SUN-RGBD', mode = 'train', demo = False, portion = 'train', img_resize = (228, 304), depth_resize = (128, 160))
     img, depth = dataset[0]
 
     # overall_max = 0
