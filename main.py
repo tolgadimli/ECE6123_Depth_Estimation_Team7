@@ -13,9 +13,9 @@ import pandas as pd
 
 from options import Options
 
-from losses import berHuLoss, MaskedL1Loss, OrdinalLoss, SILogLoss, BinsChamferLoss
+from losses import berHuLoss, MaskedL1Loss, OrdinalLoss, SILogLoss, BinsChamferLoss, SARPN_total_loss
 from metrics import calc_metrics
-from utils import get_model, SID
+from utils import get_model, SID, adjust_gt
 from dataset_classes import SUNRGBD_Dataset, NYU_Depth_Dataset, DIODE_Dataset
 import sys
 sys.path.append('..')
@@ -95,10 +95,9 @@ def test_dorn(model, device, test_loader, criterion, sid):
             target_labels = sid.depth2labels(target).unsqueeze(dim=1)
             
             pred_labels, pred_softmax = model(data)
-            out_depth = sid.labels2depth(pred_labels).squeeze()
+            out_depth = sid.labels2depth(pred_labels).squeeze(dim=1)
 
-            print(target.shape, out_depth.shape)
-
+            #print(target.shape, out_depth.shape)
             metric_ls = calc_metrics(out_depth, target)
             test_loss += criterion(pred_softmax, target_labels).item()  # sum up batch loss
             all_metrics = [all_metrics[i] + metric_ls[i] for i in range(8)]
@@ -116,30 +115,22 @@ def train_adabins(model, device, train_loader, optimizer, scheduler, criterion1,
     train_loss = 0
     model.train()
     for data, target in train_loader:
-        data, target = data.to(device), target.to(device).unsqueeze(dim=1)
+        data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         bin_edges, pred = model(data)
-        # pred = pred.squeeze()
+        pred = pred.squeeze()
 
         # print(pred.shape, target.shape, bin_edges.shape)
         loss1 = criterion1(pred, target)
         loss2 = criterion2(bin_edges, target)
-        # print(bin_edges)
-        # print(target)
-        # print(torch.min(target), torch.max(target), torch.min(pred), torch.max(pred) )
-        # print(torch.mean(target), torch.mean(pred))
-        # print(loss1.item())
-        # print(loss2.item())
-        # print('===================')
-
+        # print(loss.item())
         loss = loss1 + 0.1 * loss2
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), 0.1)
         
         optimizer.step()
-        scheduler.step()
         train_loss = train_loss + loss.item()
-
+        scheduler.step()
     train_loss = train_loss / len(train_loader.dataset)
     
     return train_loss
@@ -151,22 +142,78 @@ def test_adabins(model, device, test_loader, criterion1, criterion2):
     all_metrics = [0] * 8
     with torch.no_grad():
         for data, target in test_loader:
-            data, target = data.to(device), target.to(device).unsqueeze(dim=1)
+            data, target = data.to(device), target.to(device)
             
             bin_edges, pred = model(data)
+            pred = pred.squeeze()
 
             # print(target.shape, pred.shape)
             loss1 = criterion1(pred, target)
             loss2 = criterion2(bin_edges, target)
             loss = loss1 + 0.1 * loss2
 
-            target = target.squeeze(dim=1)
-            pred = pred.squeeze(dim=1)
-            # print(target.shape, pred.shape)
-
             metric_ls = calc_metrics(pred, target)
             test_loss += loss.item()  # sum up batch loss
             all_metrics = [all_metrics[i] + metric_ls[i] for i in range(8)]
+
+    test_loss /= len(test_loader.dataset)
+    all_metrics = [all_metrics[i] / len(test_loader) for i in range(8)]
+
+    return test_loss, all_metrics
+
+
+
+def train_sarpn(model, device, train_loader, optimizer, scheduler, criterion):
+
+    train_loss = 0
+    model.train()
+    for data, target in train_loader:
+        data, target = data.to(device), target.to(device)
+        target = target.unsqueeze(dim=1)
+        # print(target.shape)
+        image = torch.autograd.Variable(data)
+        target = torch.autograd.Variable(target)	
+
+        pred_depth = model(image)
+        # print([pred_depth[i].shape for i in range(len(pred_depth))])
+        gt_depth = adjust_gt(target, pred_depth)
+
+        loss = criterion(gt_depth, pred_depth)
+        print(loss)
+
+        loss.backward()
+        optimizer.step()
+
+        train_loss = train_loss + loss.item()
+        break
+
+    scheduler.step()
+    train_loss = train_loss / len(train_loader.dataset)
+    
+    
+    return train_loss
+
+def test_sarpn(model, device, test_loader, criterion):
+
+    model.eval()
+    test_loss = 0
+    all_metrics = [0] * 8
+    with torch.no_grad():
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            target = target.unsqueeze(dim=1)
+
+            pred_depth = model(data)
+            gt_depth = adjust_gt(target, pred_depth)
+
+            loss = criterion(gt_depth, pred_depth)
+
+            print(pred_depth[4].squeeze(dim=1).shape, gt_depth[4].squeeze(dim=1).shape)
+            metric_ls = calc_metrics(pred_depth[4].squeeze(dim=1), gt_depth[4].squeeze(dim=1))
+            test_loss += loss.item()  # sum up batch loss
+            all_metrics = [all_metrics[i] + metric_ls[i] for i in range(8)]
+
+            break
 
     test_loss /= len(test_loader.dataset)
     all_metrics = [all_metrics[i] / len(test_loader) for i in range(8)]
@@ -189,8 +236,10 @@ if __name__ == '__main__':
     decoder = args.decoder
 
     print(args.bs)
+
     load_model_dir = args.load_model_dir
     save_model = True
+
     print(model_name, decoder, loss_fnc)
 
     # MAIN_EXPERIMENT_DIR = 'All_Results'
@@ -234,8 +283,11 @@ if __name__ == '__main__':
         img_resize = (257, 353)
         depth_resize = (257, 353)
     elif 'adabins' in model_name.lower():
-        img_resize = (384, 480)
-        depth_resize = (192, 240)
+        img_resize = (360, 480)
+        depth_resize = (180, 240)
+    elif 'sarpn' in model_name.lower():
+        img_resize = (300, 400)
+        depth_resize = (150, 200) 
     else:
         raise ValueError('Invalid model type.')
     
@@ -261,6 +313,9 @@ if __name__ == '__main__':
     elif 'silog' in loss_fnc.lower():
         criterion_silog = SILogLoss()
         criterion_chamfer = BinsChamferLoss()
+    elif 'sarpn' in loss_fnc.lower():
+        criterion = SARPN_total_loss
+
 
 
     sid = SID(device = device)
@@ -293,10 +348,21 @@ if __name__ == '__main__':
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=lr_drops, gamma=0.1)
 
     elif 'adabins' in model_name.lower():
-        train_params = [{'params': model.get_1x_lr_params(), 'lr': args.lr / 10}, {'params': model.get_10x_lr_params(), 'lr': args.lr}]
+        train_params = [{'params': model.get_1x_lr_params(), 'lr': args.lr}, {'params': model.get_10x_lr_params(), 'lr': args.lr * 10}]
         optimizer = torch.optim.AdamW(train_params, lr=args.lr, weight_decay=args.wd)
         scheduler = optim.lr_scheduler.OneCycleLR(optimizer, args.lr, epochs=epoch, steps_per_epoch=len(train_loader), cycle_momentum=True,
-                                                                    base_momentum=0.85, max_momentum=0.95, div_factor=25, final_div_factor=100)                            
+                                                                    base_momentum=0.85, max_momentum=0.95, div_factor=25, final_div_factor=100)    
+
+    elif 'sarpn' in model_name.lower():
+        if dataset_name == 'SUN-RGBD':
+            lr_drops = [20,40,60]
+        elif dataset_name == 'NYUv2':
+            lr_drops = [7,14,20]
+        elif dataset_name == 'DIODE':
+            lr_drops = [20,40,60]
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.wd)
+        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=lr_drops, gamma=0.1)  
+
     else:                          
         optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wd, momentum=0.9)
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=lr_drops, gamma=0.1)
@@ -317,6 +383,11 @@ if __name__ == '__main__':
         elif 'adabins' in model_name.lower():
             train_loss = train_adabins(model, device, train_loader, optimizer, scheduler, criterion_silog, criterion_chamfer)
             test_loss, all_metrics = test_adabins(model, device, test_loader, criterion_silog, criterion_chamfer)
+
+        elif 'sarpn' in model_name.lower():
+            train_loss = train_sarpn(model, device, train_loader, optimizer, scheduler, criterion)
+            test_loss, all_metrics = test_sarpn(model, device, test_loader, criterion)
+
         else:
             train_loss = train(model, device, train_loader, optimizer, scheduler, criterion)
             test_loss, all_metrics = test(model, device, test_loader, criterion)

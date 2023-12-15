@@ -113,7 +113,7 @@ def resnet101dilated(pretrained=False):
         # This is ADE20K-pretrained encoder from https://github.com/CSAILVision/semantic-segmentation-pytorch
         # It is the only pretrained resnet101dilated I could find online
         # (with the same architecture as in the paper - see https://github.com/hufu6371/DORN/tree/master/models)
-        filename = '../pretrained/ade20k_resnet101dilated_encoder_epoch_25.pth'
+        filename = 'pretrained/ade20k_resnet101dilated_encoder_epoch_25.pth'
         if not os.path.isfile(filename):
             os.makedirs(os.path.dirname(filename))
             print('Pretrained feature extractor not found. Downloading...')

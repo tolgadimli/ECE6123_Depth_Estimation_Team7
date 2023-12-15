@@ -13,8 +13,7 @@ from PIL import Image
 import albumentations as A
 import logging
 
-MAX_VAL = 10
-COMMON_SCALAR = 2.5
+COMMON_SCALAR = 4
 
 class NYU_Depth_Dataset(data.Dataset):
     def __init__(self, mode = 'train', demo = False, portion = 'train', img_resize = None, depth_resize = None,
@@ -30,7 +29,7 @@ class NYU_Depth_Dataset(data.Dataset):
             self.common_transforms = A.Compose([
                 A.Rotate(5),
                 A.HorizontalFlip(p=0.5),
-                # A.RandomBrightnessContrast(p=0.3),
+                A.RandomBrightnessContrast(p=0.3),
                 A.Resize(height=int(img_resize[0]*1.2), width=int(img_resize[1]*1.2)),
                 A.RandomCrop(height=img_resize[0], width=img_resize[1]),
             ])
@@ -52,9 +51,6 @@ class NYU_Depth_Dataset(data.Dataset):
     def __getitem__(self, idx):
         
         img, depth = np.array(self.dataset[idx]['image']), np.array(self.dataset[idx]['depth_map'])
-
-        #img, depth = np.array(self.dataset[idx]['image'], dtype=np.float32) / 255.0, np.array(self.dataset[idx]['depth_map'], dtype=np.float32) / 1000.0
-        #print(img)
         transformed = self.common_transforms(image = img, mask = depth)
         img, depth = transformed['image'], transformed['mask']
 
@@ -62,7 +58,7 @@ class NYU_Depth_Dataset(data.Dataset):
             orig_img, orig_depth = deepcopy(img), deepcopy(depth)
 
         img = transforms.Normalize(self.meanv, self.stdv) (transforms.ToTensor()(img))
-        depth = torch.unsqueeze(torch.as_tensor(depth, dtype=torch.float32), dim = 0)
+        depth =  torch.unsqueeze(torch.as_tensor(depth, dtype=torch.float32), dim = 0)
         depth = self.target_resize(depth).squeeze()
 
         if self.demo:
@@ -104,42 +100,39 @@ def get_mean_and_std(dataset):
     return mean_ls, std_ls
 
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
 
-#     img_resize = (384, 480)
-#     depth_resize = (192, 240)
-#     dataset = NYU_Depth_Dataset(mode = 'train', demo = False, portion = 'train', img_resize=img_resize, depth_resize=depth_resize)
-#     ult_max = 0
-#     for i in tqdm(range(len(dataset))):
-#         img, dp = dataset[i]
-#         # b = transforms.ToTensor()(dp)
-#         cur_max = np.max(np.asarray(dp))
-#         # print(cur_max)
-#         ult_max = max(ult_max, cur_max)
+    meanv = (0.4656348 , 0.39099635, 0.37311448)
+    stdv = (0.27271997, 0.2749485 , 0.2881334)
 
-#         if i % 1000 == 0:
-#             print(ult_max)
-#         break
+    # idx = 41624
+    # train_dataset = load_dataset("sayakpaul/nyu_depth_v2", split="train")
+    # img, depth = np.array(train_dataset[idx]['image']), np.array(train_dataset[idx]['depth_map'])
 
-#     print(ult_max)
-
-#     meanv = (0.4656348 , 0.39099635, 0.37311448)
-#     stdv = (0.27271997, 0.2749485 , 0.2881334)
-
-#     # idx = 41624
-#     # train_dataset = load_dataset("sayakpaul/nyu_depth_v2", split="train")
-#     # img, depth = np.array(train_dataset[idx]['image']), np.array(train_dataset[idx]['depth_map'])
-
-#     # resizes = (228, 304)
-#     # transform = A.Compose([ A.Resize(width=int(resizes[1]*1.2), height=int(resizes[0]*1.2)),
-#     #             A.CenterCrop(width=resizes[1], height=resizes[0])])  
+    # resizes = (228, 304)
+    # transform = A.Compose([ A.Resize(width=int(resizes[1]*1.2), height=int(resizes[0]*1.2)),
+    #             A.CenterCrop(width=resizes[1], height=resizes[0])])  
              
-#     img_resize = (228, 304)
-#     depth_resize = (128, 160)
-#     meanv = (0.466 , 0.391, 0.373)
-#     stdv = (0.273, 0.275 , 0.288)
-#     dataset = NYU_Depth_Dataset(mode = 'eval', demo = False, portion = 'eval', img_resize=img_resize, depth_resize=depth_resize)
+    img_resize = (228, 304)
+    depth_resize = (128, 160)
+    meanv = (0.466 , 0.391, 0.373)
+    stdv = (0.273, 0.275 , 0.288)
+    dataset = NYU_Depth_Dataset(mode = 'eval', demo = False, portion = 'eval', img_resize=img_resize, depth_resize=depth_resize)
     
+
+    max_train_depth = 304.3991
+
+    m = len(dataset)
+    max_depth = 0
+    for i in range(m):
+        _,d = dataset[i]
+        temp_max = torch.max(d)
+        if temp_max > max_depth:
+            max_depth = temp_max
+            print(max_depth)
+    print('===============')
+    print(max_depth)
+
     # a,b =dataset[0]
     # plt.figure()
     # plt.imshow(b)
@@ -185,5 +178,16 @@ def get_mean_and_std(dataset):
     # dataset = NYU_Depth_Dataset(portion = 'test', transform = None, flip_p=0, img_resize=img_resize, depth_resize=depth_resize, demo=True)
     # img, depth, orig_img, orig_depth = dataset[0]
 
+#     ult_max = 0
+#     for i in tqdm(range(len(dataset))):
+#         _, dp = dataset[i]
+#         # b = transforms.ToTensor()(dp)
+#         cur_max = np.max(np.asarray(dp))
+#         # print(cur_max)
+#         ult_max = max(ult_max, cur_max)
 
+#         if i % 1000 == 0:
+#             print(ult_max)
+
+#     print(ult_max)
 # plt.imshow(np.transpose(np.asarray(img),(1,2,0)))

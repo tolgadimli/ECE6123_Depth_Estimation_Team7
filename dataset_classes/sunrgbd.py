@@ -13,7 +13,7 @@ import albumentations as A
 from PIL import Image
 import logging
 
-MAX_DEPTH = 65536
+MAX_DEPTH = 65536/10
 RANDOM_DEPTH_COEFF = 2.5
 
 # applying horizontal flip together
@@ -81,7 +81,7 @@ class SUNRGBD_Dataset(data.Dataset):
         img = transforms.Normalize(self.meanv, self.stdv) (transforms.ToTensor()(img))
         depth =  torch.unsqueeze(torch.as_tensor(depth, dtype=torch.float32), dim = 0)
         depth = self.target_resize(depth).squeeze()
-        depth = RANDOM_DEPTH_COEFF * depth / MAX_DEPTH
+        depth = depth / MAX_DEPTH
 
         if self.demo:
             return img, depth, orig_img, orig_depth
@@ -122,7 +122,7 @@ def get_mean_and_std_sunrgbd(dataset):
 
 if __name__ == '__main__':
     
-    dataset = SUNRGBD_Dataset(data_dir = '../../datasets/SUN-RGBD', mode = 'train', demo = False, portion = 'train', img_resize = (228, 304), depth_resize = (128, 160))
+    dataset = SUNRGBD_Dataset(mode = 'eval', demo = False, portion = 'train', img_resize = (228, 304), depth_resize = (128, 160))
     img, depth = dataset[0]
 
     # overall_max = 0

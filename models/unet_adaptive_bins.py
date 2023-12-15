@@ -151,7 +151,7 @@ class Encoder(nn.Module):
 
 
 class UnetAdaptiveBins(nn.Module):
-    def __init__(self, backend, n_bins=256, min_val=0.001, max_val=10, norm='linear'):
+    def __init__(self, backend, n_bins=100, min_val=0.1, max_val=10, norm='linear'):
         super(UnetAdaptiveBins, self).__init__()
         self.num_classes = n_bins
         self.min_val = min_val
@@ -167,11 +167,8 @@ class UnetAdaptiveBins(nn.Module):
 
     def forward(self, x, **kwargs):
         unet_out = self.decoder(self.encoder(x), **kwargs)
-        # print(unet_out)
         bin_widths_normed, range_attention_maps = self.adaptive_bins_layer(unet_out)
-        # print(range_attention_maps)
         out = self.conv_out(range_attention_maps)
-        # print(out)
 
         # Post process
         # n, c, h, w = out.shape
@@ -218,13 +215,13 @@ class UnetAdaptiveBins(nn.Module):
 
 
 # if __name__ == '__main__':
-    # device = 'cuda:0'
-    # model = UnetAdaptiveBins.build(n_bins=256).to(device)
-    # # x = torch.rand(2, 3, 480, 640).to(device)
-    # # bins, pred = model(x)
-    # print('=======================')
-    # x = torch.rand(4, 3, 360, 480).to(device)
-    # bins, pred = model(x)
+#     device = 'cuda:0'
+#     model = UnetAdaptiveBins.build(n_bins=256).to(device)
+#     # x = torch.rand(2, 3, 480, 640).to(device)
+#     # bins, pred = model(x)
+#     print('=======================')
+#     x = torch.rand(4, 3, 360, 480).to(device)
+#     bins, pred = model(x)
 
 
-    # print(bins.shape, pred.shape)
+#     print(bins.shape, pred.shape)

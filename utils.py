@@ -3,7 +3,22 @@ from models import UpConv_ResNet50, UpConv_AlexNet, UpConv_VGG16
 from models import  FCRN_ResNet50v2
 from models import DORN
 from models import UnetAdaptiveBins
+from models import SARPN
 import torch
+import torch.nn.functional as F
+import torchvision
+
+
+def adjust_gt(gt_depth, pred_depth):
+    adjusted_gt = []
+    for each_depth in pred_depth:
+        res_depth = F.interpolate(gt_depth, size=[each_depth.size(2), each_depth.size(3)],
+								   mode='bilinear', align_corners=True)
+        # res_depth = torchvision.transforms.Resize(size = (each_depth.size(2),each_depth.size(3)))(gt_depth)
+        # print(gt_depth.shape, res_depth.shape)
+        adjusted_gt.append(res_depth)
+    return adjusted_gt
+
 
 def get_model(model_name, decoder, device):
     # print(model_name, decoder)
@@ -25,6 +40,8 @@ def get_model(model_name, decoder, device):
         model = DORN()
     elif model_name.lower() == 'adabins':
         model = UnetAdaptiveBins.build(n_bins=256)
+    elif model_name.lower() == 'sarpn':
+        model = SARPN(backbone = 'ResNet50')
     else:
         raise ValueError('Invalid model type.')
     

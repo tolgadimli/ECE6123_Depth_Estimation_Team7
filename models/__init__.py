@@ -4,3 +4,4 @@ from models.new_fcrn import FCRN_ResNet50v2
 from models.dorn import DORN
 from models.resnet_dilated import resnet101dilated
 from models.unet_adaptive_bins import UnetAdaptiveBins
+from models.pyramid_sarpn import SARPN
