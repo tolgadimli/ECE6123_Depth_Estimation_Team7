@@ -178,14 +178,14 @@ def train_sarpn(model, device, train_loader, optimizer, scheduler, criterion):
         # print([pred_depth[i].shape for i in range(len(pred_depth))])
         gt_depth = adjust_gt(target, pred_depth)
 
-        loss = criterion(gt_depth, pred_depth)
-        print(loss)
+        loss = criterion(gt_depth, pred_depth, device)
+        # print(loss)
 
         loss.backward()
         optimizer.step()
 
         train_loss = train_loss + loss.item()
-        break
+        # break
 
     scheduler.step()
     train_loss = train_loss / len(train_loader.dataset)
@@ -206,14 +206,14 @@ def test_sarpn(model, device, test_loader, criterion):
             pred_depth = model(data)
             gt_depth = adjust_gt(target, pred_depth)
 
-            loss = criterion(gt_depth, pred_depth)
+            loss = criterion(gt_depth, pred_depth, device)
 
-            print(pred_depth[4].squeeze(dim=1).shape, gt_depth[4].squeeze(dim=1).shape)
+            # print(pred_depth[4].squeeze(dim=1).shape, gt_depth[4].squeeze(dim=1).shape)
             metric_ls = calc_metrics(pred_depth[4].squeeze(dim=1), gt_depth[4].squeeze(dim=1))
             test_loss += loss.item()  # sum up batch loss
             all_metrics = [all_metrics[i] + metric_ls[i] for i in range(8)]
 
-            break
+            # break
 
     test_loss /= len(test_loader.dataset)
     all_metrics = [all_metrics[i] / len(test_loader) for i in range(8)]
@@ -286,8 +286,8 @@ if __name__ == '__main__':
         img_resize = (360, 480)
         depth_resize = (180, 240)
     elif 'sarpn' in model_name.lower():
-        img_resize = (300, 400)
-        depth_resize = (150, 200) 
+        img_resize = (228, 304)
+        depth_resize = (114, 152) 
     else:
         raise ValueError('Invalid model type.')
     

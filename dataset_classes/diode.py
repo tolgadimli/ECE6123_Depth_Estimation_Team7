@@ -132,27 +132,29 @@ def get_mean_and_std_diode(dataset):
     return (mean_r, mean_g, mean_b), (std_r, std_g, std_b)
 
 
-train_dataset = DIODE_Dataset(data_dir = '../../datasets/DIODE', mode = 'eval', demo = False, portion = 'val', img_resize = (300,400), depth_resize = (150,200),
-                             )
+# if __name__ == '__main__':
 
-# mean_vector, std_vector = get_mean_and_std_diode(train_dataset)
-# (0.41705924, 0.3793961, 0.36385778), (0.21542302, 0.21402489, 0.22897081)
+    # train_dataset = DIODE_Dataset(data_dir = '../../datasets/DIODE', mode = 'eval', demo = False, portion = 'val', img_resize = (300,400), depth_resize = (150,200),
+    #                              )
 
-max_train_depth = 304.3991
+    # mean_vector, std_vector = get_mean_and_std_diode(train_dataset)
+    # (0.41705924, 0.3793961, 0.36385778), (0.21542302, 0.21402489, 0.22897081)
 
-m = len(train_dataset)
-max_depth = 0
-for i in range(m):
-    _,d = train_dataset[i]
-    temp_max = torch.max(d)
-    if temp_max > max_depth:
-        max_depth = temp_max
-        print(max_depth)
-print('===============')
-print(max_depth)
+    # max_train_depth = 304.3991
+
+    # m = len(train_dataset)
+    # max_depth = 0
+    # for i in range(m):
+    #     _,d = train_dataset[i]
+    #     temp_max = torch.max(d)
+    #     if temp_max > max_depth:
+    #         max_depth = temp_max
+    #         print(max_depth)
+    # print('===============')
+    # print(max_depth)
 
 
-# one_tuple = total_data_portion[0]
-# img = np.array(Image.open( one_tuple[0] ) )
-# depth = np.load(one_tuple[1] )
-# mask = np.load(one_tuple[2] )
+    # one_tuple = total_data_portion[0]
+    # img = np.array(Image.open( one_tuple[0] ) )
+    # depth = np.load(one_tuple[1] )
+    # mask = np.load(one_tuple[2] )

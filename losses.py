@@ -250,15 +250,15 @@ class Sobel(nn.Module):
   
 		return out
 
-def SARPN_total_loss(output, depth_gt):
+def SARPN_total_loss(output, depth_gt, device):
 
 	losses=[]
 
 	for depth_index in range(len(output)):
 
 		cos = nn.CosineSimilarity(dim=1, eps=0)
-		get_gradient = Sobel().cuda()
-		ones = torch.ones(depth_gt[depth_index].size(0), 1, depth_gt[depth_index].size(2),depth_gt[depth_index].size(3)).float().cuda()
+		get_gradient = Sobel().to(device=device)
+		ones = torch.ones(depth_gt[depth_index].size(0), 1, depth_gt[depth_index].size(2),depth_gt[depth_index].size(3)).float().to(device=device)
 		ones = torch.autograd.Variable(ones)
 		depth_grad = get_gradient(depth_gt[depth_index])
 		output_grad = get_gradient(output[depth_index])
