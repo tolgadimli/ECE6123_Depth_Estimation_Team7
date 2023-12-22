@@ -16,19 +16,6 @@ from losses import *
 from metrics import calc_metrics
 from utils import get_model, SID
 
-cmap = plt.cm.viridis
-COMMON_SCALAR = 8
-
-def colored_depthmap(depth, d_min=None, d_max=None):
-    if d_min is None:
-        d_min = np.min(depth)
-    if d_max is None:
-        d_max = np.max(depth)
-    depth_relative = (depth - d_min) / (d_max - d_min)
-    return 255 * cmap(depth_relative)[:,:,:3]
-
-torch.manual_seed(32)
-# args = Options().parse()
 
 model_config = 'NYUv2_DORN_uproj_ordinal_2023-12-15_00:00'
 mc_ls = model_config.split('_')
