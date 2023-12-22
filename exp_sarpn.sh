@@ -13,6 +13,6 @@
 
 # python codes/main.py --model_name 'adabins' --dataset_name 'SUN-RGBD' --loss_fnc 'silog' --lr 3e-4 --wd 1e-2 --bs 4 --device 'cuda:0' 
 
-python codes/main.py --model_name 'adabins' --dataset_name 'NYUv2' --loss_fnc 'silog' --lr 3e-4 --wd 1e-2 --bs 4 --device 'cuda:1' & \
-python codes/main.py --model_name 'adabins' --dataset_name 'DIODE' --loss_fnc 'silog' --lr 3e-4 --wd 1e-2 --bs 4 --device 'cuda:2' 
+python codes/main.py --model_name 'SARPN' --loss_fnc 'SARPN' --dataset_name 'NYUv2'  --lr 1e-4 --wd 1e-4 --bs 2 --device 'cuda:0'
+
 
