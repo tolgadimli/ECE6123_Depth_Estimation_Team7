@@ -6,4 +6,4 @@ Depth estimation is one of the most essential tasks in computer vision and has c
 - SUN RGB-D dataset can be downloaded from here: https://rgbd.cs.princeton.edu/ \
 - The DIODE dataset can be downloaded from here: https://diode-dataset.org/ \
 
-The datasets should be located in ```'../datasets'.
+The datasets should be located in `../datasets`.
