@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+# Code is taken from here: https://github.com/shariqfarooq123/AdaBins/tree/main
+
 class PatchTransformerEncoder(nn.Module):
     def __init__(self, in_channels, patch_size=10, embedding_dim=128, num_heads=4):
         super(PatchTransformerEncoder, self).__init__()
