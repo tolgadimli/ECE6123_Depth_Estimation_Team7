@@ -7,10 +7,8 @@ import torchvision
 import torch.nn.functional as F
 import torchvision.models as vision_models
 
-# a = torch.rand(6,1,150,200)
-# b = torchvision.transforms.Resize(size = (75,100), interpolation= InterpolationMode.NEAREST)(a)
 
-
+# This code snippet is taken from here: https://github.com/Xt-Chen/SARPN
 
 class E_resnet(nn.Module):
 
