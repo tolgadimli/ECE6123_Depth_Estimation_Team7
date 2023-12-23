@@ -8,4 +8,4 @@ Depth estimation is one of the most essential tasks in computer vision and has c
 
 The datasets should be located in `../datasets`.
 
-Experiment results in the .csv format can be found [here].(https://drive.google.com/drive/folders/1gdOVLCAmqlDowhOv_JBa6iPCUioXY4gQ?usp=sharing)
+Experiment results in the .csv format can be found [here](https://drive.google.com/drive/folders/1gdOVLCAmqlDowhOv_JBa6iPCUioXY4gQ?usp=sharing).
