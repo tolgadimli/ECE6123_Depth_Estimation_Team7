@@ -7,3 +7,5 @@ Depth estimation is one of the most essential tasks in computer vision and has c
 - The DIODE dataset can be downloaded from here: https://diode-dataset.org/ 
 
 The datasets should be located in `../datasets`.
+
+Experiment results in the .csv format can be found [here].(https://drive.google.com/drive/folders/1gdOVLCAmqlDowhOv_JBa6iPCUioXY4gQ?usp=sharing)
